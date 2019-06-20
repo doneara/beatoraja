@@ -194,21 +194,7 @@ public class JsonSkin {
 	}
 
 	public static class GaugeGraph {
-		 public String id;
-		 public String assistClearBGColor = "440044cc";
-		 public String assistAndEasyFailBGColor = "004444cc";
-		 public String grooveFailBGColor = "004400cc";
-		 public String grooveClearAndHardBGColor = "440000cc";
-		 public String exHardBGColor = "444400cc";
-		 public String hazardBGColor = "444444cc";
-		 public String assistClearLineColor = "ff00ff";
-		 public String assistAndEasyFailLineColor = "00ffff";
-		 public String grooveFailLineColor = "00ff00";
-		 public String grooveClearAndHardLineColor = "ff0000";
-		 public String exHardLineColor = "ffff00";
-		 public String hazardLineColor = "cccccc";
-		 public String borderlineColor = "ff0000";
-		 public String borderColor = "440000";
+		public String id;
 	}
 
 	public static class JudgeGraph {
