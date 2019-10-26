@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.util.*;
 import java.util.logging.Logger;
 
+import bms.player.beatoraja.external.ScoreDataImporter;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 
@@ -73,6 +74,8 @@ public class PlayConfigurationView implements Initializable {
 	@FXML
 	private Tab skinTab;
 	@FXML
+	private Tab musicselectTab;
+	@FXML
 	private Tab optionTab;
 	@FXML
 	private Tab otherTab;
@@ -110,10 +113,6 @@ public class PlayConfigurationView implements Initializable {
 	private Spinner<Double> hispeedmargin;
 	@FXML
 	private Spinner<Integer> inputduration;
-	@FXML
-	private Spinner<Integer> scrolldurationlow;
-	@FXML
-	private Spinner<Integer> scrolldurationhigh;
 
 	@FXML
 	private ComboBox<Integer> scoreop;
@@ -175,8 +174,6 @@ public class PlayConfigurationView implements Initializable {
 	private CheckBox guidese;
 	@FXML
 	private CheckBox windowhold;
-	@FXML
-	private CheckBox randomselect;
 
 	@FXML
 	private CheckBox judgeregion;
@@ -209,8 +206,6 @@ public class PlayConfigurationView implements Initializable {
 	private NumericSpinner<Integer> analogScratchThreshold;
     @FXML
     private CheckBox usecim;
-    @FXML
-    private CheckBox useSongInfo;
 
     @FXML
 	private TextField txtTwitterConsumerKey;
@@ -240,6 +235,8 @@ public class PlayConfigurationView implements Initializable {
 	@FXML
 	private ResourceConfigurationView resourceController;
 	@FXML
+	private MusicSelectConfigurationView musicselectController;
+	@FXML
 	private SkinConfigurationView skinController;
 	@FXML
 	private IRConfigurationView irController;
@@ -248,8 +245,6 @@ public class PlayConfigurationView implements Initializable {
 
 	private Config config;
 	private PlayerConfig player;
-	@FXML
-	private CheckBox folderlamp;
 
 	private MainLoader loader;
 
@@ -368,6 +363,7 @@ public class PlayConfigurationView implements Initializable {
 		players.getItems().setAll(PlayerConfig.readAllPlayerID(config.getPlayerpath()));
 		videoController.update(config);
 		audioController.update(config);
+		musicselectController.update(config);
 
 		bgmpath.setText(config.getBgmpath());
 		soundpath.setText(config.getSoundpath());
@@ -375,8 +371,6 @@ public class PlayConfigurationView implements Initializable {
 		resourceController.update(config);
 
 		showhiddennote.setSelected(config.isShowhiddennote());
-
-		judgealgorithm.setValue(JudgeAlgorithm.getIndex(config.getJudgeType()));
 
 		autosavereplay1.getSelectionModel().select(config.getAutoSaveReplay()[0]);
 		autosavereplay2.getSelectionModel().select(config.getAutoSaveReplay()[1]);
@@ -387,12 +381,6 @@ public class PlayConfigurationView implements Initializable {
         // int b = Boolean.valueOf(config.getJKOC()).compareTo(false);
 
         usecim.setSelected(config.isCacheSkinImage());
-        useSongInfo.setSelected(config.isUseSongInfo());
-
-		folderlamp.setSelected(config.isFolderlamp());
-
-		scrolldurationlow.getValueFactory().setValue(config.getScrollDurationLow());
-		scrolldurationhigh.getValueFactory().setValue(config.getScrollDurationHigh());
 
 		enableIpfs.setSelected(config.isEnableIpfs());
 		ipfsurl.setText(config.getIpfsUrl());
@@ -444,6 +432,7 @@ public class PlayConfigurationView implements Initializable {
 		playername.setText(player.getName());
 
 		videoController.updatePlayer(player);
+		musicselectController.updatePlayer(player);
 
 		scoreop.getSelectionModel().select(player.getRandom());
 		scoreop2.getSelectionModel().select(player.getRandom2());
@@ -452,7 +441,6 @@ public class PlayConfigurationView implements Initializable {
 		seventoninetype.getSelectionModel().select(player.getSevenToNineType());
 		guidese.setSelected(player.isGuideSE());
 		windowhold.setSelected(player.isWindowHold());
-		randomselect.setSelected(player.isRandomSelect());
 		gaugeop.getSelectionModel().select(player.getGauge());
 		lntype.getSelectionModel().select(player.getLnmode());
 
@@ -494,6 +482,7 @@ public class PlayConfigurationView implements Initializable {
 	public void commit() {
 	    videoController.commit(config);
 		audioController.commit();
+		musicselectController.commit();
 
 		config.setPlayername(players.getValue());
 
@@ -504,18 +493,12 @@ public class PlayConfigurationView implements Initializable {
 
 		config.setShowhiddennote(showhiddennote.isSelected());
 
-		config.setJudgeType(JudgeAlgorithm.values()[judgealgorithm.getValue()].name());
 		config.setAutoSaveReplay( new int[]{autosavereplay1.getValue(),autosavereplay2.getValue(),
 				autosavereplay3.getValue(),autosavereplay4.getValue()});
 
         // jkoc_hack is integer but *.setJKOC needs boolean type
 
         config.setCacheSkinImage(usecim.isSelected());
-        config.setUseSongInfo(useSongInfo.isSelected());
-        config.setFolderlamp(folderlamp.isSelected());
-
-		config.setScrollDutationLow(getValue(scrolldurationlow));
-		config.setScrollDutationHigh(getValue(scrolldurationhigh));
 
 		config.setEnableIpfs(enableIpfs.isSelected());
 		config.setIpfsUrl(ipfsurl.getText());
@@ -542,6 +525,7 @@ public class PlayConfigurationView implements Initializable {
 		}
 
 		videoController.commitPlayer(player);
+		musicselectController.commitPlayer();
 
 		player.setRandom(scoreop.getValue());
 		player.setRandom2(scoreop2.getValue());
@@ -550,7 +534,6 @@ public class PlayConfigurationView implements Initializable {
 		player.setSevenToNineType(seventoninetype.getValue());
 		player.setGuideSE(guidese.isSelected());
 		player.setWindowHold(windowhold.isSelected());
-		player.setRandomSelect(randomselect.isSelected());
 		player.setGauge(gaugeop.getValue());
 		player.setLnmode(lntype.getValue());
 		player.setJudgetiming(getValue(judgetiming));
@@ -626,6 +609,8 @@ public class PlayConfigurationView implements Initializable {
 			conf.setEnablehidden(enableHidden.isSelected());
 			conf.setLift(getValue(lift) / 1000f);
 			conf.setHidden(getValue(hidden) / 1000f);
+			conf.setJudgetype(JudgeAlgorithm.values()[judgealgorithm.getValue()].name());
+
 		}
 		pc = playconfig.getValue();
 		PlayConfig conf = player.getPlayConfig(Mode.valueOf(pc.name())).getPlayconfig();
@@ -642,6 +627,7 @@ public class PlayConfigurationView implements Initializable {
 		enableHidden.setSelected(conf.isEnablehidden());
 		lift.getValueFactory().setValue((int) (conf.getLift() * 1000));
 		hidden.getValueFactory().setValue((int) (conf.getHidden() * 1000));
+		judgealgorithm.setValue(JudgeAlgorithm.getIndex(conf.getJudgetype()));
 	}
 
 	private PlayMode ic = null;
@@ -720,7 +706,7 @@ public class PlayConfigurationView implements Initializable {
 			Class.forName("org.sqlite.JDBC");
 			SongDatabaseAccessor songdb = new SQLiteSongDatabaseAccessor(config.getSongpath(),
 					config.getBmsroot());
-			SongInformationAccessor infodb = useSongInfo.isSelected() ?
+			SongInformationAccessor infodb = config.isUseSongInfo() ?
 					new SongInformationAccessor(Paths.get("songinfo.db").toString()) : null;
 			Logger.getGlobal().info("song.db更新開始");
 			songdb.updateSongDatas(updatepath, updateAll, infodb);
@@ -765,7 +751,6 @@ public class PlayConfigurationView implements Initializable {
 			return;
 		}
 
-		final int[] clears = { 0, 1, 4, 5, 6, 8, 9 };
 		try {
 			Class.forName("org.sqlite.JDBC");
 			SongDatabaseAccessor songdb = new SQLiteSongDatabaseAccessor(config.getSongpath(),
@@ -774,39 +759,9 @@ public class PlayConfigurationView implements Initializable {
 			ScoreDatabaseAccessor scoredb = new ScoreDatabaseAccessor(config.getPlayerpath() + "/" + player + "/score.db");
 			scoredb.createTable();
 
-			try (Connection con = DriverManager.getConnection("jdbc:sqlite:" + dir.getPath())) {
-				QueryRunner qr = new QueryRunner();
-				MapListHandler rh = new MapListHandler();
-				List<Map<String, Object>> scores = qr.query(con, "SELECT * FROM score", rh);
+			ScoreDataImporter scoreimporter = new ScoreDataImporter(scoredb);
+			scoreimporter.importFromLR2ScoreDatabase(dir.getPath(), songdb);
 
-				List<IRScoreData> result = new ArrayList<IRScoreData>();
-				for (Map<String, Object> score : scores) {
-					final String md5 = (String) score.get("hash");
-					SongData[] song = songdb.getSongDatas(new String[] { md5 });
-					if (song.length > 0) {
-						IRScoreData sd = new IRScoreData();
-						sd.setEpg((int) score.get("perfect"));
-						sd.setEgr((int) score.get("great"));
-						sd.setEgd((int) score.get("good"));
-						sd.setEbd((int) score.get("bad"));
-						sd.setEpr((int) score.get("poor"));
-						sd.setMinbp((int) score.get("minbp"));
-						sd.setClear(clears[(int) score.get("clear")]);
-						sd.setPlaycount((int) score.get("playcount"));
-						sd.setClearcount((int) score.get("clearcount"));
-						sd.setNotes(song[0].getNotes());
-						sd.setSha256(song[0].getSha256());
-						IRScoreData oldsd = scoredb.getScoreData(sd.getSha256(), 0);
-						sd.setScorehash("LR2");
-						if (oldsd == null || oldsd.getClear() <= sd.getClear()) {
-							result.add(sd);
-						}
-					}
-				}
-				scoredb.setScoreData(result.toArray(new IRScoreData[result.size()]));
-			} catch (Exception e) {
-				Logger.getGlobal().severe("スコア移行時の例外:" + e.getMessage());
-			}
 		} catch (ClassNotFoundException e1) {
 		}
 

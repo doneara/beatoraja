@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.StringBuilder;
 
 import bms.player.beatoraja.MainState.MainStateType;
 import bms.player.beatoraja.MessageRenderer.Message;
+import bms.player.beatoraja.PlayerConfig.IRConfig;
 import bms.player.beatoraja.PlayerResource.PlayMode;
 import bms.player.beatoraja.audio.*;
 import bms.player.beatoraja.config.KeyConfiguration;
@@ -49,7 +50,7 @@ import bms.tool.mdprocessor.MusicDownloadProcessor;
  */
 public class MainController extends ApplicationAdapter {
 
-	public static final String VERSION = "beatoraja 0.7.3";
+	public static final String VERSION = "beatoraja 0.7.4";
 
 	public static final boolean debug = false;
 
@@ -179,7 +180,7 @@ public class MainController extends ApplicationAdapter {
 			}
 			
 			if(ir != null) {
-				irarray.add(new IRStatus(irconfig.getIrname(), irconfig.getIrsend(), ir));
+				irarray.add(new IRStatus(irconfig, ir));
 			}
 		}
 		ir = irarray.toArray(IRStatus.class);
@@ -813,18 +814,35 @@ public class MainController extends ApplicationAdapter {
 		}
 	}
 
+	/**
+	 * BGM、効果音セット管理用クラス
+	 * 
+	 * @author exch
+	 */
 	public static class SystemSoundManager {
+		/**
+		 * 検出されたBGMセットのディレクトリパス
+		 */
 		private Array<Path> bgms = new Array<Path>();
+		/**
+		 * 現在のBGMセットのディレクトリパス
+		 */
 		private Path currentBGMPath;
+		/**
+		 * 検出された効果音セットのディレクトリパス
+		 */
 		private Array<Path> sounds = new Array<Path>();
+		/**
+		 * 現在の効果音セットのディレクトリパス
+		 */
 		private Path currentSoundPath;
 
 		public SystemSoundManager(Config config) {
 			if(config.getBgmpath() != null && config.getBgmpath().length() > 0) {
-				scan(Paths.get(config.getBgmpath()), bgms, "select.");				
+				scan(Paths.get(config.getBgmpath()), bgms, "select.wav");				
 			}
 			if(config.getSoundpath() != null && config.getSoundpath().length() > 0) {
-				scan(Paths.get(config.getSoundpath()), sounds, "clear.");				
+				scan(Paths.get(config.getSoundpath()), sounds, "clear.wav");				
 			}
 			Logger.getGlobal().info("検出されたBGM Set : " + bgms.size + " Sound Set : " + sounds.size);
 		}
@@ -853,25 +871,22 @@ public class MainController extends ApplicationAdapter {
 					sub.forEach((t) -> {
 						scan(t, paths, name);
 					});
+					if (AudioDriver.getPaths(p.resolve(name).toString()).length > 0) {
+						paths.add(p);
+					}
 				} catch (IOException e) {
 				}
-			} else if (p.getFileName().toString().toLowerCase().equals(name + "wav") ||
-					p.getFileName().toString().toLowerCase().equals(name + "ogg")) {
-				paths.add(p.getParent());
-			}
-
+			} 
 		}
 	}
 
 	public static class IRStatus {
 		
-		public final String name;
-		public final int send;
+		public final IRConfig config;
 		public final IRConnection connection;
 		
-		public IRStatus(String name, int send, IRConnection connection) {
-			this.name = name;
-			this.send = send;
+		public IRStatus(IRConfig config, IRConnection connection) {
+			this.config = config;
 			this.connection = connection;
 		}
 	}
