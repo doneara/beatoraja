@@ -174,6 +174,8 @@ public class PlayConfigurationView implements Initializable {
 	private CheckBox guidese;
 	@FXML
 	private CheckBox windowhold;
+	@FXML
+	private Spinner<Integer> extranotedepth;
 
 	@FXML
 	private CheckBox judgeregion;
@@ -394,9 +396,7 @@ public class PlayConfigurationView implements Initializable {
 
 		try {
 			Class.forName("org.sqlite.JDBC");
-			SongDatabaseAccessor songdb = new SQLiteSongDatabaseAccessor(config.getSongpath(),
-					config.getBmsroot());
-			tableController.init(songdb);
+			tableController.init(MainLoader.getScoreDatabaseAccessor());
 			tableController.update(Paths.get(config.getTablepath() + "/" + "default.json"));
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -457,6 +457,8 @@ public class PlayConfigurationView implements Initializable {
 		hranthresholdbpm.getValueFactory().setValue(player.getHranThresholdBPM());
 		judgeregion.setSelected(player.isShowjudgearea());
 		markprocessednote.setSelected(player.isMarkprocessednote());
+		extranotedepth.getValueFactory().setValue(player.getExtranoteDepth());
+
 		target.setValue(player.getTarget());
 
 		irController.update(player);
@@ -505,14 +507,8 @@ public class PlayConfigurationView implements Initializable {
 
 		commitPlayer();
 
-		Json json = new Json();
-		json.setOutputType(OutputType.json);
-		try (FileWriter fw = new FileWriter("config.json")) {
-			fw.write(json.prettyPrint(config));
-			fw.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Config.write(config);
+
 		tableController.commit();
 	}
 
@@ -547,6 +543,7 @@ public class PlayConfigurationView implements Initializable {
 		player.setNomine(nomine.isSelected());
 		player.setHranThresholdBPM(getValue(hranthresholdbpm));
 		player.setMarkprocessednote(markprocessednote.isSelected());
+		player.setExtranoteDepth(extranotedepth.getValue());
 
 		player.setShowjudgearea(judgeregion.isSelected());
 		player.setTarget(target.getValue());
@@ -703,9 +700,7 @@ public class PlayConfigurationView implements Initializable {
 	public void loadBMS(String updatepath, boolean updateAll) {
 		commit();
 		try {
-			Class.forName("org.sqlite.JDBC");
-			SongDatabaseAccessor songdb = new SQLiteSongDatabaseAccessor(config.getSongpath(),
-					config.getBmsroot());
+			SongDatabaseAccessor songdb = MainLoader.getScoreDatabaseAccessor();
 			SongInformationAccessor infodb = config.isUseSongInfo() ?
 					new SongInformationAccessor(Paths.get("songinfo.db").toString()) : null;
 			Logger.getGlobal().info("song.db更新開始");
@@ -753,8 +748,7 @@ public class PlayConfigurationView implements Initializable {
 
 		try {
 			Class.forName("org.sqlite.JDBC");
-			SongDatabaseAccessor songdb = new SQLiteSongDatabaseAccessor(config.getSongpath(),
-					config.getBmsroot());
+			SongDatabaseAccessor songdb = MainLoader.getScoreDatabaseAccessor();
 			String player = "player1";
 			ScoreDatabaseAccessor scoredb = new ScoreDatabaseAccessor(config.getPlayerpath() + "/" + player + "/score.db");
 			scoredb.createTable();
