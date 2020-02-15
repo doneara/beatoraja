@@ -11,7 +11,9 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
 import bms.player.beatoraja.ir.IRConnectionManager;
+import bms.player.beatoraja.pattern.LongNoteModifier;
 import bms.player.beatoraja.pattern.MineNoteModifier;
+import bms.player.beatoraja.pattern.ScrollSpeedModifier;
 import bms.player.beatoraja.play.GrooveGauge;
 import bms.player.beatoraja.play.TargetProperty;
 import bms.player.beatoraja.select.BarSorter;
@@ -79,6 +81,7 @@ public class PlayerConfig {
 	 * アシストオプション:コンスタント
 	 */
 	private boolean constant = false;
+    private int scrollMode = 0;
 	/**
 	 * アシストオプション:LNアシスト
 	 */
@@ -88,10 +91,8 @@ public class PlayerConfig {
 	 */
 	private int judgewindowrate = 100;
 	/**
-	 * アシストオプション:地雷除去
+	 * 地雷モード
 	 */
-	private boolean nomine = false;
-
 	private int mineMode = 0;
 	/**
 	 * アシストオプション:BPMガイド
@@ -281,14 +282,6 @@ public class PlayerConfig {
 
 	public void setDoubleoption(int doubleoption) {
 		this.doubleoption = doubleoption;
-	}
-
-	public boolean isNomine() {
-		return nomine;
-	}
-
-	public void setNomine(boolean nomine) {
-		this.nomine = nomine;
 	}
 
 	public boolean isLegacynote() {
@@ -681,6 +674,7 @@ public class PlayerConfig {
 		sevenToNinePattern = MathUtils.clamp(sevenToNinePattern, 0, 6);
 		sevenToNineType = MathUtils.clamp(sevenToNineType, 0, 2);
 
+		scrollMode = MathUtils.clamp(scrollMode, 0, ScrollSpeedModifier.Mode.values().length);
 		mineMode = MathUtils.clamp(mineMode, 0, MineNoteModifier.Mode.values().length);
 		extranoteDepth = MathUtils.clamp(extranoteDepth, 0, 100);
 
@@ -802,7 +796,15 @@ public class PlayerConfig {
 		this.mineMode = mineMode;
 	}
 
-	public static class IRConfig implements Validatable{
+    public int getScrollMode() {
+        return scrollMode;
+    }
+
+    public void setScrollMode(int scrollMode) {
+        this.scrollMode = scrollMode;
+    }
+
+    public static class IRConfig implements Validatable{
 		private String irname = "";
 
 		private String userid = "";
